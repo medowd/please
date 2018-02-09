@@ -169,10 +169,11 @@ var opts struct {
 	} `command:"clean" description:"Cleans build artifacts" subcommands-optional:"true"`
 
 	Watch struct {
+		Run	bool	`long:"run" short:"r" description:"Invoke plz run when watched binaries change"`
 		Args struct {
 			Targets []core.BuildLabel `positional-arg-name:"targets" required:"true" description:"Targets to watch the sources of for changes"`
 		} `positional-args:"true" required:"true"`
-	} `command:"watch" description:"Watches sources of targets for changes and rebuilds them"`
+	} `command:"watch" subcommands-optional:"true" description:"Watches sources of targets for changes and rebuilds them"`
 
 	Update struct {
 		Force    bool        `long:"force" description:"Forces a re-download of the new version."`
@@ -402,9 +403,14 @@ var buildFunctions = map[string]func() bool{
 		return false
 	},
 	"watch": func() bool {
-		success, state := runBuild(opts.Watch.Args.Targets, false, false)
+		buildNow := false
+		if opts.Watch.Run {
+			// Build immediately before starting watch to enable "run"
+			buildNow = true
+		}
+		success, state := runBuild(opts.Watch.Args.Targets, buildNow, false)
 		if success {
-			watch.Watch(state, state.ExpandOriginalTargets())
+			watch.Watch(state, state.ExpandOriginalTargets(), opts.Watch.Run)
 		}
 		return success
 	},
