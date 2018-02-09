@@ -95,15 +95,13 @@ func runBuild(state *core.BuildState, command string, labels []core.BuildLabel, 
 		if _, ok := err.(*exec.ExitError); !ok {
 			log.Error("Failed to run %s: %s", binary, err)
 		}
-		if runner != nil {
-			cmd = runner
-		}
+		cmd = runner
 	} else {
                 for _, label := range labels {
 			if runner != nil {
 				runner.Process.Kill()
-				cmd = runTarget(state.Graph.TargetOrDie(label), run)
 			}
+			cmd = runTarget(state.Graph.TargetOrDie(label), run)
                 }
         }
         return cmd
